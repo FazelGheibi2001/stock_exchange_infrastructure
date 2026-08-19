@@ -3,10 +3,7 @@ package com.irtech.brokerinfrastructure.order;
 import com.irtech.brokerinfrastructure.context.SepehrSessionContext;
 import com.irtech.brokerinfrastructure.context.SepehrSessionRegistry;
 import com.irtech.brokerinfrastructure.context.SepehrSessionStore;
-import com.irtech.brokerinfrastructure.dto.BrokerApiResponse;
-import com.irtech.brokerinfrastructure.dto.CalculateOrderRequest;
-import com.irtech.brokerinfrastructure.dto.NewOrderRequest;
-import com.irtech.brokerinfrastructure.dto.OrderDTO;
+import com.irtech.brokerinfrastructure.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +23,9 @@ public class OrderService {
     private String API_ORDER_URL;
     @Value("${sepehr.origin.url}")
     private String ORIGIN_URL;
+    @Value("${sepehr.close.url}")
+    private String API_CANCEL_ORDER_URL;
+
 
     private final SepehrSessionRegistry sessionRegistry;
     private final SepehrSessionStore sepehrSessionStore;
@@ -137,6 +137,73 @@ public class OrderService {
 
             throw new IllegalStateException(
                     "x-sessionId is missing"
+            );
+        }
+    }
+
+    public BrokerApiResponse closeOrder(CloseOrderDTO request) {
+
+        String sessionKey = sepehrSessionStore.getSessionKey();
+
+        SepehrSessionContext context = sessionRegistry.get(sessionKey);
+
+        checkAuthenticated(context);
+
+        try {
+
+            String response = context.getRestClient()
+                    .delete()
+                    .uri(
+                            API_BASE_URL
+                                    + API_CANCEL_ORDER_URL
+                                    + "?serialNumber={serialNumber}",
+                            request.getSerialNumber()
+                    )
+                    .header(
+                            "x-sessionId",
+                            context.getXSessionId()
+                    )
+                    .header(
+                            "Origin",
+                            ORIGIN_URL
+                    )
+                    .header(
+                            "Referer",
+                            ORIGIN_URL + "/"
+                    )
+                    .retrieve()
+                    .body(String.class);
+
+            return new BrokerApiResponse(
+                    200,
+                    response
+            );
+
+        } catch (RestClientResponseException e) {
+
+            log.error(
+                    "Close order failed. serialNumber={}, status={}, response={}",
+                    request.getSerialNumber(),
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString()
+            );
+
+            return new BrokerApiResponse(
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString()
+            );
+
+        } catch (Exception e) {
+
+            log.error(
+                    "Close order failed. serialNumber={}",
+                    request.getSerialNumber(),
+                    e
+            );
+
+            return new BrokerApiResponse(
+                    500,
+                    e.getMessage()
             );
         }
     }

@@ -17,3 +17,5 @@ sepehr:
     url: /api/v2/orders/NewOrder
   origin:
     url: https://gs.ephoenix.ir
+  close:
+    url: /api/v2/orders/CancelOrder

@@ -2,6 +2,7 @@ package com.irtech.brokerinfrastructure.order;
 
 import com.irtech.brokerinfrastructure.dto.BrokerApiResponse;
 import com.irtech.brokerinfrastructure.dto.CalculateOrderRequest;
+import com.irtech.brokerinfrastructure.dto.CloseOrderDTO;
 import com.irtech.brokerinfrastructure.dto.OrderDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -25,6 +26,16 @@ public class OrderController {
     @PostMapping("/open/position")
     public ResponseEntity<String> newOrder(@RequestBody OrderDTO request) {
         BrokerApiResponse response = orderService.newOrder(request);
+
+        return ResponseEntity
+                .status(response.status())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(response.body());
+    }
+
+    @PostMapping("/close/position")
+    public ResponseEntity<String> closeOrder(@RequestBody CloseOrderDTO request) {
+        BrokerApiResponse response = orderService.closeOrder(request);
 
         return ResponseEntity
                 .status(response.status())
