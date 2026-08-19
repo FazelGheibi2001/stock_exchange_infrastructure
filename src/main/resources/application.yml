@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: BrokerـInfrastructure
+
+server:
+  port: 8091
+
+
+sepehr:
+  login-name: 2500533395
+  password: Fazel1380$
+  base:
+    url: https://api-gs.ephoenix.ir
+  calculate:
+    url: /api/v2/orders/CalculateOrderParam
+  order:
+    url: /api/v2/orders/NewOrder
+  origin:
+    url: https://gs.ephoenix.ir
