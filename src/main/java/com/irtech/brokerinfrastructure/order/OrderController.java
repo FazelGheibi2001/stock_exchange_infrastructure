@@ -21,7 +21,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.calculateOrder(request));
     }
 
-    @PostMapping("/orders/new")
+    @PostMapping("/open/position")
     public ResponseEntity<String> newOrder(@RequestBody OrderDTO request) {
         BrokerApiResponse response = orderService.newOrder(request);
 
