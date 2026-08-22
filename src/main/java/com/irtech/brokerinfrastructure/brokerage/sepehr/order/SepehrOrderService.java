@@ -65,7 +65,7 @@ public class SepehrOrderService {
                             .collect(Collectors.joining("; "));
 
 
-            return context.getRestClient()
+            CalculateOrderResponse response = context.getRestClient()
                     .post()
                     .uri(
                             API_BASE_URL +
@@ -95,8 +95,13 @@ public class SepehrOrderService {
                     )
                     .retrieve()
                     .body(
-                            BrokerApiResponse.class
+                            CalculateOrderResponse.class
                     );
+
+            return new BrokerApiResponse(
+                    200,
+                    response.toString()
+            );
         } catch (RestClientResponseException e) {
 
 

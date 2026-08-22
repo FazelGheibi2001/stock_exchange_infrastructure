@@ -1,7 +1,7 @@
 package com.irtech.brokerinfrastructure.dto;
 
 public record BrokerApiResponse(
-        int status,
+        Integer status,
         String body
 ) {
 }

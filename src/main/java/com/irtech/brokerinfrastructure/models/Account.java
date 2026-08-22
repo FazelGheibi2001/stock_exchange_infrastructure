@@ -30,6 +30,7 @@ public class Account {
     )
     private String name;
 
+    private boolean enabled;
 
     @Column(
             name = "login_name",

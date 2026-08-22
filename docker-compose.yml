@@ -1,0 +1,23 @@
+services:
+
+  broker-infrastructure:
+    container_name: broker-infrastructure
+
+    build:
+      context: .
+
+    restart: unless-stopped
+
+    ports:
+      - "8091:8091"
+
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+    networks:
+      - broker-network
+
+
+networks:
+  broker-network:
+    driver: bridge

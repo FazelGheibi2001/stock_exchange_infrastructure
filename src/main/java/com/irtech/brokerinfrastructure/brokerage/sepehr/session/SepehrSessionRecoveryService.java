@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.locks.Lock;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -19,69 +17,51 @@ public class SepehrSessionRecoveryService {
     private final LoginRedisService loginRedisService;
     private final SepehrSessionRegistry sessionRegistry;
     private final LoginService loginService;
-    private final SepehrSessionLock sessionLock;
     private final SepehrProperties properties;
 
     public void recover(String loginName) {
-        Lock lock =
-                sessionLock.get(loginName);
+
+        log.warn(
+                "Recovering Sepehr session. user={}",
+                loginName
+        );
 
 
-        if (!lock.tryLock()) {
+        loginRedisService.delete(loginName);
 
-            log.warn(
-                    "Recovery already running. user={}",
-                    loginName
+        sessionRegistry.remove(loginName);
+
+        SepehrProperties.Account account =
+                properties.getAccounts()
+                        .stream()
+                        .filter(a ->
+                                a.getLoginName()
+                                        .equals(loginName)
+                        )
+                        .findFirst()
+                        .orElseThrow();
+
+
+        BrokerLoginRequest request = new BrokerLoginRequest();
+
+        request.setLoginName(account.getLoginName());
+        request.setPassword(account.getPassword());
+
+        LoginResponse response = loginService.loginTOSepehr(request);
+
+        if (response == null || !response.success()) {
+
+            throw new IllegalStateException(
+                    "Sepehr recovery failed"
             );
-
-            return;
         }
 
-        try {
 
-            log.warn(
-                    "Recovering Sepehr session. user={}",
-                    loginName
-            );
+        log.info(
+                "Sepehr recovery successful. user={}",
+                loginName
+        );
 
-
-            loginRedisService.delete(loginName);
-
-            sessionRegistry.remove(loginName);
-
-            SepehrProperties.Account account =
-                    properties.getAccounts()
-                            .stream()
-                            .filter(a ->
-                                    a.getLoginName()
-                                            .equals(loginName)
-                            )
-                            .findFirst()
-                            .orElseThrow();
-
-
-            BrokerLoginRequest request = new BrokerLoginRequest();
-
-            request.setLoginName(account.getLoginName());
-            request.setPassword(account.getPassword());
-
-            LoginResponse response = loginService.loginTOSepehr(request);
-
-            if (response == null || !response.success()) {
-
-                throw new IllegalStateException(
-                        "Sepehr recovery failed"
-                );
-            }
-
-
-            log.info(
-                    "Sepehr recovery successful. user={}",
-                    loginName
-            );
-        } finally {
-            lock.unlock();
-        }
 
     }
 

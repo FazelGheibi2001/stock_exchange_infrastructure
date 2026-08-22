@@ -20,7 +20,7 @@ public class SepehrSessionHealthScheduler {
     private final SepehrHealthService healthService;
     private final LoginService loginService;
 
-    @Scheduled(fixedDelay = 60 * 1000)
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
     public void healthCheck() {
         properties.getAccounts()
                 .forEach(account -> {

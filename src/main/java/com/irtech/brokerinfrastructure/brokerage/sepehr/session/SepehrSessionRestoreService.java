@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.locks.Lock;
-
 
 @Component
 @RequiredArgsConstructor
@@ -16,19 +14,12 @@ public class SepehrSessionRestoreService {
 
     private final LoginRedisService loginRedisService;
     private final SepehrSessionRegistry sessionRegistry;
-    private final SepehrSessionLock sessionLock;
 
     public void restoreAllSessions() {
 
-        var sessions =
-                loginRedisService.findAll();
-
+        var sessions = loginRedisService.findAll();
 
         sessions.forEach(session -> {
-
-            Lock lock = sessionLock.get(session.loginName());
-
-            lock.lock();
 
             try {
 

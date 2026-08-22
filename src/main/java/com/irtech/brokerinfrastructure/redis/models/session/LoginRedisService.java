@@ -16,7 +16,7 @@ public class LoginRedisService extends AbstractRedisService {
 
     private final RedisTemplate<String, LoginRedisModel> redis;
 
-    private static final Duration SESSION_TTL = Duration.ofHours(1);
+    private static final Duration SESSION_TTL = Duration.ofMinutes(30);
 
     public void save(LoginRedisModel login) {
 
@@ -64,12 +64,22 @@ public class LoginRedisService extends AbstractRedisService {
         return sessions;
     }
 
-    public void delete(String loginName){
+    public void delete(String loginName) {
 
         String key = LoginRedisKeys.loginInfoKeyBuilder(
-                        loginName
-                );
+                loginName
+        );
 
         redis.delete(key);
+    }
+
+    public void refreshTTL(String loginName) {
+        String key = LoginRedisKeys.loginInfoKeyBuilder(loginName);
+
+        redis.expire(
+                key,
+                SESSION_TTL
+        );
+
     }
 }

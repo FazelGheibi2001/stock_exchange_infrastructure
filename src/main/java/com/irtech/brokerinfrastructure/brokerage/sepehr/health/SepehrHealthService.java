@@ -61,6 +61,8 @@ public class SepehrHealthService {
                             String.class
                     );
 
+            loginRedisService.refreshTTL(loginName);
+
             return true;
 
         } catch (RestClientResponseException e) {
