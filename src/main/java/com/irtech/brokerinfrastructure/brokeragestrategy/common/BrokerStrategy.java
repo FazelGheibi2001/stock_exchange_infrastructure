@@ -6,7 +6,7 @@ import com.irtech.brokerinfrastructure.models.enums.BrokerageType;
 public interface BrokerStrategy {
     BrokerageType type();
 
-    CalculateOrderResponse calculatePosition(
+    BrokerApiResponse calculatePosition(
             String loginName,
             CalculateOrderDTO dto
     );

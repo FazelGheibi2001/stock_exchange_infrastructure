@@ -21,7 +21,7 @@ public class SepehrBrokerStrategy implements BrokerStrategy {
     }
 
     @Override
-    public CalculateOrderResponse calculatePosition(String loginName, CalculateOrderDTO dto) {
+    public BrokerApiResponse calculatePosition(String loginName, CalculateOrderDTO dto) {
         CalculateOrderRequest request = convertDtoToCalculateOrderRequest(dto);
 
         return sepehrOrderService.calculateOrder(loginName, request);

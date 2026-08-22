@@ -1,6 +1,7 @@
 package com.irtech.brokerinfrastructure.brokerage.sepehr.order;
 
 
+import com.irtech.brokerinfrastructure.brokerage.sepehr.session.SepehrSessionRecoveryService;
 import com.irtech.brokerinfrastructure.dto.*;
 import com.irtech.brokerinfrastructure.dto.sepehr.CalculateOrderRequest;
 import com.irtech.brokerinfrastructure.dto.sepehr.NewOrderRequest;
@@ -25,6 +26,7 @@ public class SepehrOrderService {
 
     private final SepehrSessionRegistry sessionRegistry;
     private final LoginRedisService loginRedisService;
+    private final SepehrSessionRecoveryService recoveryService;
 
     @Value("${sepehr.base.url}")
     private String API_BASE_URL;
@@ -37,7 +39,7 @@ public class SepehrOrderService {
     @Value("${sepehr.close.url}")
     private String API_CANCEL_ORDER_URL;
 
-    public CalculateOrderResponse calculateOrder(
+    public BrokerApiResponse calculateOrder(
             String loginName,
             CalculateOrderRequest request
     ) {
@@ -48,51 +50,73 @@ public class SepehrOrderService {
 
         checkAuthenticated(session);
 
-
-        String cookieHeader =
-                context.getCookieStore()
-                        .getCookies()
-                        .stream()
-                        .map(cookie ->
-                                cookie.getName()
-                                        + "="
-                                        + cookie.getValue()
-                        )
-                        .collect(Collectors.joining("; "));
+        try {
 
 
-        return context.getRestClient()
-                .post()
-                .uri(
-                        API_BASE_URL +
-                                API_CALCULATE_URL
-                )
-                .header(
-                        "x-sessionId",
-                        session.xSessionId()
-                )
-                .header(
-                        "Cookie",
-                        cookieHeader
-                )
-                .header(
-                        "Origin",
-                        ORIGIN_URL
-                )
-                .header(
-                        "Referer",
-                        ORIGIN_URL + "/"
-                )
-                .contentType(
-                        MediaType.APPLICATION_JSON
-                )
-                .body(
-                        request
-                )
-                .retrieve()
-                .body(
-                        CalculateOrderResponse.class
+            String cookieHeader =
+                    context.getCookieStore()
+                            .getCookies()
+                            .stream()
+                            .map(cookie ->
+                                    cookie.getName()
+                                            + "="
+                                            + cookie.getValue()
+                            )
+                            .collect(Collectors.joining("; "));
+
+
+            return context.getRestClient()
+                    .post()
+                    .uri(
+                            API_BASE_URL +
+                                    API_CALCULATE_URL
+                    )
+                    .header(
+                            "x-sessionId",
+                            session.xSessionId()
+                    )
+                    .header(
+                            "Cookie",
+                            cookieHeader
+                    )
+                    .header(
+                            "Origin",
+                            ORIGIN_URL
+                    )
+                    .header(
+                            "Referer",
+                            ORIGIN_URL + "/"
+                    )
+                    .contentType(
+                            MediaType.APPLICATION_JSON
+                    )
+                    .body(
+                            request
+                    )
+                    .retrieve()
+                    .body(
+                            BrokerApiResponse.class
+                    );
+        } catch (RestClientResponseException e) {
+
+
+            if(e.getStatusCode().value() == 401){
+
+                recoveryService.recover(
+                        loginName
                 );
+
+                return calculateOrder(
+                        loginName,
+                        request
+                );
+            }
+
+            return new BrokerApiResponse(
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString()
+            );
+        }
     }
 
     public BrokerApiResponse newOrder(String loginName, NewOrderRequest request) {
@@ -166,12 +190,15 @@ public class SepehrOrderService {
 
         } catch (RestClientResponseException e) {
 
-            log.error(
-                    "New order failed. user={}, status={}, response={}",
-                    loginName,
-                    e.getStatusCode().value(),
-                    e.getResponseBodyAsString()
-            );
+            if (e.getStatusCode().value() == 401) {
+
+                recoveryService.recover(loginName);
+
+                return newOrder(
+                        loginName,
+                        request
+                );
+            }
 
             return new BrokerApiResponse(
                     e.getStatusCode().value(),
@@ -258,20 +285,20 @@ public class SepehrOrderService {
         } catch (RestClientResponseException e) {
 
 
-            log.error(
-                    "Close order failed. user={}, serialNumber={}, status={}, response={}",
-                    loginName,
-                    request.getSerialNumber(),
-                    e.getStatusCode().value(),
-                    e.getResponseBodyAsString()
-            );
+            if (e.getStatusCode().value() == 401) {
 
+                recoveryService.recover(loginName);
+
+                return closeOrder(
+                        loginName,
+                        request
+                );
+            }
 
             return new BrokerApiResponse(
                     e.getStatusCode().value(),
                     e.getResponseBodyAsString()
             );
-
 
         } catch (Exception e) {
 

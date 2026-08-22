@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +16,8 @@ public class LoginRedisService extends AbstractRedisService {
 
     private final RedisTemplate<String, LoginRedisModel> redis;
 
+    private static final Duration SESSION_TTL = Duration.ofHours(1);
+
     public void save(LoginRedisModel login) {
 
         String key = LoginRedisKeys.loginInfoKeyBuilder(login.loginName());
@@ -22,7 +25,8 @@ public class LoginRedisService extends AbstractRedisService {
         set(
                 redis,
                 key,
-                login
+                login,
+                SESSION_TTL
         );
     }
 
@@ -58,5 +62,14 @@ public class LoginRedisService extends AbstractRedisService {
             }
         }
         return sessions;
+    }
+
+    public void delete(String loginName){
+
+        String key = LoginRedisKeys.loginInfoKeyBuilder(
+                        loginName
+                );
+
+        redis.delete(key);
     }
 }

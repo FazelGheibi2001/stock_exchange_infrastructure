@@ -13,7 +13,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/position/calculate/{loginName}")
-    public ResponseEntity<CalculateOrderResponse> calculatePosition(@PathVariable String loginName, @RequestBody CalculateOrderDTO request) {
+    public ResponseEntity<BrokerApiResponse> calculatePosition(@PathVariable String loginName, @RequestBody CalculateOrderDTO request) {
         return ResponseEntity.ok(orderService.calculatePosition(loginName, request));
     }
 

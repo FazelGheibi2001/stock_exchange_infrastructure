@@ -18,7 +18,7 @@ public class OrderService {
     private final BrokerStrategyFactory factory;
     private final SepehrProperties properties;
 
-    public CalculateOrderResponse calculatePosition(String loginName, CalculateOrderDTO dto) {
+    public BrokerApiResponse calculatePosition(String loginName, CalculateOrderDTO dto) {
         List<SepehrProperties.Account> accounts = properties.getAccounts();
 
         for (SepehrProperties.Account account : accounts) {
