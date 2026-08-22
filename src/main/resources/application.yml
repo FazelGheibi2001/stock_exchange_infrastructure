@@ -1,14 +1,92 @@
 spring:
   application:
-    name: BrokerـInfrastructure
+    name: StockـMarketـInfrastructure
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+#      password: StrongRedisPassword
+      database: 0
+
+      timeout: 3000ms
+
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 2000ms
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stock_market_infrastructure?reWriteBatchedInserts=true&prepareThreshold=5
+    username: stock_market_app
+    password: StrongPasswordHere
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: StockMarketHikariPool
+
+      minimum-idle: 10
+      maximum-pool-size: 30
+
+      connection-timeout: 30000
+      validation-timeout: 5000
+
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+      leak-detection-threshold: 60000
+
+  jpa:
+    open-in-view: false
+
+    hibernate:
+      ddl-auto: create-drop
+
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100
+          fetch_size: 100
+          batch_versioned_data: true
+
+        order_inserts: true
+        order_updates: true
+
+        generate_statistics: false
+
+        format_sql: false
 
 server:
   port: 8091
 
-
 sepehr:
-  login-name: 2500533395
-  password: Fazel1380$
+  accounts:
+    - name: Fazel
+      login-name: 2500533395
+      password: Fazel1380$
+      brokerage-type: SEPEHR
+
+#    - name: account-2
+#      login-name: user2
+#      password: password2
+#
+#    - name: account-3
+#      login-name: user3
+#      password: password3
+#
+#    - name: account-4
+#      login-name: user4
+#      password: password4
+#
+#    - name: account-5
+#      login-name: user5
+#      password: password5
+#
+#    - name: account-6
+#      login-name: user6
+#      password: password6
   base:
     url: https://api-gs.ephoenix.ir
   calculate:
